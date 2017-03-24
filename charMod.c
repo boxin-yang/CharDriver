@@ -42,10 +42,19 @@ int onebyte_release(struct inode *inode, struct file *filep)
 
 ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
-	int error_count = copy_to_user(buf, onebyte_data, DEVICE_SIZE_IN_BYTE);
+	int error_count;
+	
+	if (*f_pos == 1) {
+		return 0; // finish cat
+	} else {
+		*f_pos = 1; // move the pointer
+	}
+
+	// copy data into user space
+	error_count = copy_to_user(buf, onebyte_data, DEVICE_SIZE_IN_BYTE);
 
 	if (error_count == 0) {
-		return 0;
+		return 1;
 	} else {
 		printk(KERN_ALERT "charMod: failed to read the data");
 		return -EFAULT; // Failed -- return a bad address message (-14)
