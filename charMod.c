@@ -9,6 +9,7 @@
 #include <asm/uaccess.h>
 
 #define MAJOR_NUMBER 61
+#define DEVICE_SIZE_IN_BYTE 1
 
 /* forward declaration */
 int onebyte_open(struct inode *inode, struct file *filep);
@@ -41,7 +42,14 @@ int onebyte_release(struct inode *inode, struct file *filep)
 
 ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
-	/*please complete the function on your own*/
+	int error_count = copy_to_user(buf, onebyte_data, DEVICE_SIZE_IN_BYTE);
+
+	if (error_count == 0) {
+		return 0;
+	} else {
+		printk(KERN_ALERT "charMod: failed to read the data");
+		return -EFAULT; // Failed -- return a bad address message (-14)
+	}
 }
 
 ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
