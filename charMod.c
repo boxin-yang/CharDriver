@@ -55,6 +55,7 @@ ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
 {
 	/*please complete the function on your own*/
+	return 0; 
 }
 
 static int onebyte_init(void)
