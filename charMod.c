@@ -43,17 +43,21 @@ int onebyte_release(struct inode *inode, struct file *filep)
 ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
 	int error_count;
+	int bytes_read;
 	printk(KERN_ALERT "read called and curr data is %s", device_data);
+
+	if (*f_pos == strlen(device_data)) {
+		return 0;
+	}
 
 	// copy data into user space
 	error_count = copy_to_user(buf, device_data, strlen(device_data));
 
-	int bytes_read;
 	bytes_read = strlen(device_data) - error_count;
 	*f_pos += bytes_read;
 
 	if (error_count == 0) {
-		return 0;
+		return bytes_read;
 	} else {
 		printk(KERN_ALERT "charMod: failed to read the data");
 		return -EFAULT; // Failed -- return a bad address message (-14)
@@ -62,10 +66,13 @@ ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 
 ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
 {
-	size_t length_of_data_to_copy = count < DEVICE_SIZE_IN_BYTE ? count : DEVICE_SIZE_IN_BYTE;
-	
+	size_t length_of_data_to_copy;
 	int result;
+
+	length_of_data_to_copy = count < DEVICE_SIZE_IN_BYTE ? count : DEVICE_SIZE_IN_BYTE;
+
 	result = copy_from_user(device_data, buf, length_of_data_to_copy);
+
 	if (result) {
 		// data to copy is larger than device size
 		printk(KERN_ALERT "charMod: data to write exceeds size limit of 4MB");
