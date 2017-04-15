@@ -9,7 +9,7 @@
 #include <asm/uaccess.h>
 
 #define MAJOR_NUMBER 61
-#define DEVICE_SIZE_IN_BYTE 1
+#define DEVICE_SIZE_IN_BYTE 4194304 // 4MB = 1024 * 1024 * 4
 
 /* forward declaration */
 int onebyte_open(struct inode *inode, struct file *filep);
@@ -84,7 +84,7 @@ static int onebyte_init(void)
 	// allocate one byte of memory for storage
 	// kmalloc is just like malloc, the second parameter is// the type of memory to be allocated.
 	// To release the memory allocated by kmalloc, use kfree.
-	onebyte_data = kmalloc(sizeof(char), GFP_KERNEL);
+	onebyte_data = kmalloc(DEVICE_SIZE_IN_BYTE, GFP_KERNEL);
 	if (!onebyte_data) {
 		onebyte_exit();
 		// cannot allocate memory
