@@ -63,13 +63,15 @@ ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 
 ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
 {
-	*device_data = *buf;
+	size_t length_of_data_to_copy = count < DEVICE_SIZE_IN_BYTE ? count : DEVICE_SIZE_IN_BYTE;
 	
-	if (count > 1) {
-		return -ENOSPC;
+	int result;
+	result = copy_from_user(device_data, buf, length_of_data_to_copy);
+	if (result) {
+		// data to copy is larger than device size
+		printk(KERN_ALERT "charMod: data to write exceeds size limit of 4MB");
 	}
-
-	return count; 
+	return length_of_data_to_copy;
 }
 
 static int onebyte_init(void)
