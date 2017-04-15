@@ -44,7 +44,6 @@ ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
 	int error_count;
 	int bytes_read;
-	printk(KERN_ALERT "read called and curr data is %s", device_data);
 
 	if (*f_pos == strlen(device_data)) {
 		return 0;
@@ -56,12 +55,11 @@ ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 	bytes_read = strlen(device_data) - error_count;
 	*f_pos += bytes_read;
 
-	if (error_count == 0) {
-		return bytes_read;
-	} else {
-		printk(KERN_ALERT "charMod: failed to read the data");
-		return -EFAULT; // Failed -- return a bad address message (-14)
+	if (error_count != 0) {
+		printk(KERN_ALERT "charMod: failed to read the data, bytes_read is %d while device size is %lu", bytes_read, strlen(device_data));
 	}
+
+	return bytes_read;
 }
 
 ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
@@ -69,14 +67,16 @@ ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t 
 	size_t length_of_data_to_copy;
 	int result;
 
-	length_of_data_to_copy = count < DEVICE_SIZE_IN_BYTE ? count : DEVICE_SIZE_IN_BYTE;
+	length_of_data_to_copy = count < (DEVICE_SIZE_IN_BYTE - 1) ? count : (DEVICE_SIZE_IN_BYTE - 1);
 
 	result = copy_from_user(device_data, buf, length_of_data_to_copy);
+	device_data[length_of_data_to_copy] = '\0';
 
 	if (result) {
 		// data to copy is larger than device size
-		printk(KERN_ALERT "charMod: data to write exceeds size limit of 4MB");
+		printk(KERN_ALERT "charMod: data to write size %lu bytes exceeds size limit of 4MB", count);
 	}
+
 	return length_of_data_to_copy;
 }
 
@@ -101,7 +101,8 @@ static int onebyte_init(void)
 	}
 
 	// initialize the value to be X
-	*device_data = 'X';
+	device_data[0] = 'X';
+	device_data[1] = '\0';
 	printk(KERN_ALERT "This is a onebyte device module\n");
 	return 0;
 }
