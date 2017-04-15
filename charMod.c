@@ -44,19 +44,22 @@ ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
 	int error_count;
 	int bytes_read;
+	int bytes_to_copy = strlen(device_data) > count ? count : strlen(device_data);
+	printk(KERN_ALERT "charMod: read data , device size is %lu, pointer is at %llu, count is %lu", strlen(device_data), *f_pos, count);
 
-	if (*f_pos == strlen(device_data)) {
+	if (*f_pos >= strlen(device_data)) {
+		printk(KERN_ALERT "f_pos >= data length, finished");
 		return 0;
 	}
 
 	// copy data into user space
-	error_count = copy_to_user(buf, device_data, strlen(device_data));
+	error_count = copy_to_user(buf, device_data + *f_pos, bytes_to_copy);
 
-	bytes_read = strlen(device_data) - error_count;
+	bytes_read = count - error_count;
 	*f_pos += bytes_read;
 
 	if (error_count != 0) {
-		printk(KERN_ALERT "charMod: failed to read the data, bytes_read is %d while device size is %lu", bytes_read, strlen(device_data));
+		printk(KERN_ALERT "charMod: failed to read the data, bytes_read is %d , device size is %lu, pointer is at %llu, count is %lu", bytes_read, strlen(device_data), *f_pos, count);
 	}
 
 	return bytes_read;
@@ -93,7 +96,7 @@ static int onebyte_init(void)
 	// kmalloc is just like malloc, the second parameter is// the type of memory to be allocated.
 	// To release the memory allocated by kmalloc, use kfree.
 	device_data = kmalloc(DEVICE_SIZE_IN_BYTE, GFP_KERNEL);
-	if (!device_data) {
+	if (device_data == NULL) {
 		onebyte_exit();
 		// cannot allocate memory
 		// return no memory error, negative signify a failure
@@ -103,7 +106,7 @@ static int onebyte_init(void)
 	// initialize the value to be X
 	device_data[0] = 'X';
 	device_data[1] = '\0';
-	printk(KERN_ALERT "This is a onebyte device module\n");
+	printk(KERN_ALERT "This is a char device module with initial value %s\n", device_data);
 	return 0;
 }
 
