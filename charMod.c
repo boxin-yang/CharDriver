@@ -28,7 +28,7 @@ struct file_operations onebyte_fops = {
 	release: 	onebyte_release
 };
 
-char *onebyte_data = NULL;
+char *device_data = NULL;
 
 int onebyte_open(struct inode *inode, struct file *filep)
 {
@@ -51,7 +51,7 @@ ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 	}
 
 	// copy data into user space
-	error_count = copy_to_user(buf, onebyte_data, DEVICE_SIZE_IN_BYTE);
+	error_count = copy_to_user(buf, device_data, strlen(device_data));
 
 	if (error_count == 0) {
 		return 1;
@@ -63,7 +63,7 @@ ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 
 ssize_t onebyte_write(struct file *filep, const char *buf, size_t count, loff_t *f_pos)
 {
-	*onebyte_data = *buf;
+	*device_data = *buf;
 	
 	if (count > 1) {
 		return -ENOSPC;
@@ -84,8 +84,8 @@ static int onebyte_init(void)
 	// allocate one byte of memory for storage
 	// kmalloc is just like malloc, the second parameter is// the type of memory to be allocated.
 	// To release the memory allocated by kmalloc, use kfree.
-	onebyte_data = kmalloc(DEVICE_SIZE_IN_BYTE, GFP_KERNEL);
-	if (!onebyte_data) {
+	device_data = kmalloc(DEVICE_SIZE_IN_BYTE, GFP_KERNEL);
+	if (!device_data) {
 		onebyte_exit();
 		// cannot allocate memory
 		// return no memory error, negative signify a failure
@@ -93,7 +93,7 @@ static int onebyte_init(void)
 	}
 
 	// initialize the value to be X
-	*onebyte_data = 'X';
+	*device_data = 'X';
 	printk(KERN_ALERT "This is a onebyte device module\n");
 	return 0;
 }
@@ -101,10 +101,10 @@ static int onebyte_init(void)
 static void onebyte_exit(void)
 {
 	// if the pointer is pointing to something
-	if (onebyte_data) {
+	if (device_data) {
 		// free the memory and assign the pointer to NULL
-		kfree(onebyte_data);
-		onebyte_data = NULL;
+		kfree(device_data);
+		device_data = NULL;
 	}
 	// unregister the device
 	unregister_chrdev(MAJOR_NUMBER, "onebyte");
