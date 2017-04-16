@@ -44,7 +44,7 @@ int main() {
 	}
 	printf("Successfully wrote %d bytes of data to device\n", ret);	
 
-	printf("Reading from device\n");
+//	printf("Reading from device\n");
 
 //	ret = read(fd, string_to_receive, 10000);
 	/*
