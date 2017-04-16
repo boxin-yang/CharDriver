@@ -65,20 +65,21 @@ ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
 	int error_count;
 	int bytes_read;
-	int bytes_to_copy = strlen(device_data) > count ? count : strlen(device_data);
+	int bytes_to_copy = (size_val - llseek_pointer) > count ? count : (size_val - llseek_pointer);
 	printk(KERN_ALERT "charMod: read data , device size is %lu, pointer is at %llu, count is %lu", strlen(device_data), *f_pos, count);
 
-	if (*f_pos >= strlen(device_data)) {
-		printk(KERN_ALERT "f_pos >= data length, finished");
+	if (size_val <= llseek_pointer) {
+		printk(KERN_ALERT "llseek_pointer is beyong curr data size");
 		return 0;
 	}
 
 	// copy data into user space
-	error_count = copy_to_user(buf, device_data + *f_pos, bytes_to_copy);
+	error_count = copy_to_user(buf, device_data + llseek_pointer, bytes_to_copy);
 
-	bytes_read = count - error_count;
-	*f_pos += bytes_read;
-
+	bytes_read = bytes_to_copy - error_count;
+	llseek_pointer += bytes_read;
+	
+	
 	if (error_count != 0) {
 		printk(KERN_ALERT "charMod: failed to read the data, bytes_read is %d , device size is %lu, pointer is at %llu, count is %lu", bytes_read, strlen(device_data), *f_pos, count);
 	}
