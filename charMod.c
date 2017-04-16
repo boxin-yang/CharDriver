@@ -44,7 +44,19 @@ int onebyte_release(struct inode *inode, struct file *filep)
 	return 0; // always successful
 }
 
-loff_t device_llseek(struct file *filep, loff_t diff, int option) {
+loff_t device_llseek(struct file *filep, loff_t val, int option) {
+	switch (option) {
+		case SEEK_SET:
+			llseek_pointer = val;
+			break;
+		case SEEK_CUR:
+			llseek_pointer += val;
+			break;
+		case SEEK_END:
+			llseek_pointer = size_val + val;
+		default:
+			return -EINVAL; // only 3 options available
+	}
 	return llseek_pointer;
 }
 
