@@ -17,7 +17,8 @@ int onebyte_release(struct inode *inode, struct file *filep);
 ssize_t onebyte_read(struct file *filep, char *buf, size_t
 count, loff_t *f_pos);
 ssize_t onebyte_write(struct file *filep, const char *buf,
-size_t count, loff_t *f_pos);
+size_t count, loff_t *f_posi);
+loff_t device_llseek(struct file *filep, loff_t diff, int option);
 static void onebyte_exit(void);
 
 /* definition of file_operation structure */
@@ -25,10 +26,13 @@ struct file_operations onebyte_fops = {
 	read: 		onebyte_read,
 	write: 		onebyte_write,
 	open: 		onebyte_open,
-	release: 	onebyte_release
+	release: 	onebyte_release,
+	llseek:		device_llseek
 };
 
 char *device_data = NULL;
+size_t size_val = 0;
+loff_t llseek_pointer=0;
 
 int onebyte_open(struct inode *inode, struct file *filep)
 {
@@ -39,6 +43,11 @@ int onebyte_release(struct inode *inode, struct file *filep)
 {
 	return 0; // always successful
 }
+
+loff_t device_llseek(struct file *filep, loff_t diff, int option) {
+	return llseek_pointer;
+}
+
 
 ssize_t onebyte_read(struct file *filep, char *buf, size_t count, loff_t *f_pos)
 {
