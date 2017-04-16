@@ -27,6 +27,8 @@ void test() {
 
 	k = lseek(lcd, -4, -1);
 	printf("lseek=%d\n", k);
+
+	lseek(lcd, 0, SEEK_SET);
 }
 
 void initial(char i) {
@@ -40,7 +42,7 @@ void initial(char i) {
 }
 
 int main(int argc, char **argv) {
-	lcd = open("/dev/charMod", O_RDWR);
+	lcd = open("/dev/lcd", O_RDWR);
 	if (lcd == -1) {
 		printf("unable to open lcd\n");
 		exit(EXIT_FAILURE);
